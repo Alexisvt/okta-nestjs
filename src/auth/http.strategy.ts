@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { HttpException, Injectable } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { Strategy } from 'passport-http-bearer';
 
@@ -10,11 +10,14 @@ export class HttpStrategy extends PassportStrategy(Strategy) {
     super();
   }
 
-  async validate(token: string) {
-    const user = await this.authService.validateUser(token);
-    if (!user) {
-      throw new UnauthorizedException();
+  async validate(
+    token: string,
+    done: (error: HttpException, value: boolean | string) => any,
+  ) {
+    try {
+      return await this.authService.validateToken(token);
+    } catch (error) {
+      done(error, 'The toke is not valid');
     }
-    return user;
   }
 }
